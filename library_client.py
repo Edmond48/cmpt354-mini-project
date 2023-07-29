@@ -145,7 +145,7 @@ def find_event():
     rows = cursor.fetchall()
 
     print("\n==================== Results ====================")
-    if rows:
+    if row:
         for row in rows:
             print(row)
     else:
@@ -153,11 +153,34 @@ def find_event():
     
     input("\nPlease press Enter to continue")
 
-
-
 def register_event():
-    pass
+    print("\n==================== Register an Event ====================")
+    eventID = input("Please input the event ID (the first field in \"Find an Event\" results): ")
+    libraryID = input("Your library ID: ")
 
+    # check if event exists
+    findCursor = conn.cursor()
+    findQuery = "SELECT * FROM Events WHERE eventID=:eid"
+    findCursor.execute(findQuery, {"eid":eventID})
+    event = findCursor.fetchone()
+    
+    if event:
+        print(event)
+        # insert into Attend(libraryID, eventID)
+        insertCursor = conn.cursor()
+        register = "INSERT INTO Attend(libraryID, eventID) "
+        values = "VALUES (:lid, :eid)"
+        insertQuery = register + values
+        try:
+            insertCursor.execute(insertQuery, {"lid":libraryID, "eid":eventID})
+        except sqlite3.IntegrityError:
+            print("ERROR: Some information provided was wrong!\n")
+        if conn:
+            conn.commit()
+        print("\nRegister successful!")
+    else:
+        print("\nNo event(s) found")
+    
 def volunteer():
     print("\n==================== Volunteer ====================")
     print("Please enter the following details of the event:")
@@ -176,7 +199,7 @@ def volunteer():
         print("ERROR: Some information provided was wrong!\n")
     if conn:
         conn.commit()
-    print("\nYou are now a volunteer for our library. Have fun!")
+    print("\nYou are now a volunteer. Have fun!")
 
 def get_contact_information():
     print("\n==================== Help from Librarian ====================")
