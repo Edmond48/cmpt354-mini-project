@@ -16,6 +16,7 @@ def printMenu():
     print("8.Ask for help from a librarian")
     print("9.Exit")
 
+
 def find_item():
     print("\n==================== Finding Items ====================")
     print("Please enter the following details of the item (can be left blank):")
@@ -45,6 +46,7 @@ def find_item():
     
     input("\nPlease press Enter to continue")
 
+
 def borrow_item(): 
     print("\n==================== Borrow Item ====================")
     entryID = input("Please input the entry ID (the first field in \"Find an Item\" results): ")
@@ -58,7 +60,7 @@ def borrow_item():
     if row:
         # set up data to insert
         itemID = row[0]
-        print("Borrowing item with\n\tEntry ID: " + str(entryID) + "\n\tItem ID: " + str(itemID))
+        print("Borrowing item with\n\tEntry ID: " + str(entryID) + "\n\tItem ID: " + str(itemID) + "\nPlease note down your Item ID for return")
         libraryID = input("Please input your library ID number: ")
         currentTime = datetime.date.today()
         returnTime = currentTime + datetime.timedelta(days=14)
@@ -80,11 +82,47 @@ def borrow_item():
     
     input("\nPlease press Enter to continue")
 
+
 def return_item():
-    pass
+    print("\n==================== Return Item ====================")
+    print("Please input the following information:")
+    libraryID = input("Your library ID: ")
+    itemID = input("Item ID (not Entry ID): ")
+
+    findCursor = conn.cursor()
+    findQuery = "SELECT borrowID, returnDate FROM Borrow WHERE libraryID=:lid AND itemID=:iid AND returned=:r"
+    findCursor.execute(findQuery, {"lid":libraryID, "iid":itemID, "r":"No"})
+    rows = findCursor.fetchall()
+    
+    if (len(rows) == 0):
+        print("No such record of a borrow")
+        input("\nPlease press Enter to continue")
+        return
+    elif (len(rows) > 1):
+        print("\n*** Concurrent borrows of one item. Please inform library staffs ***\n")
+    
+    borrowID = rows[0][0]
+    returnDateStr = rows[0][1]
+    returnDate = datetime.datetime.strptime(returnDateStr, '%Y-%m-%d')
+    # fine for late return
+    fee = 15 if returnDate.date() < datetime.date.today() else 0
+    updateQuery = "UPDATE Borrow SET returned=:status, outstandingFee=:ofee WHERE borrowID=:bid"
+    updateCursor = conn.cursor()
+    try:
+        updateCursor.execute(updateQuery, {"status":"Yes", "ofee":fee, "bid":borrowID})
+    except sqlite3.IntegrityError:
+        print("ERROR: Some information provided was wrong!\n")
+    if conn:
+        conn.commit()
+    fineStatus = "No fine" if fee == 0 else "Fine of " + str(fee) + " dollars for late return."
+    print("\n*** Return successful. " + fineStatus + " ***")
+    
+    input("\nPlease press Enter to continue")
+
 
 def donate_item():
     pass
+
 
 def find_event():
     print("\n==================== Finding Events ====================")
@@ -116,11 +154,14 @@ def find_event():
     input("\nPlease press Enter to continue")
 
 
+
 def register_event():
     pass
 
+
 def volunteer():
     pass
+
 
 def get_contact_information():
     print("\n==================== Help from Librarian ====================")
