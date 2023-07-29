@@ -162,6 +162,9 @@ def volunteer():
     print("\n==================== Volunteer ====================")
     print("Please enter the following details of the event:")
     name = input("Name: ")
+    while (name == ''):
+        print("You must provide your name!")
+        name = input("Name: ")
     dob = input("Date of Birth (YYYY-MM-DD): ")
     email = input("Email: ")
 
