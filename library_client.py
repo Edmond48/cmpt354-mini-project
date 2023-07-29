@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 # global variable
 conn = sqlite3.connect('library.db')
@@ -45,7 +46,39 @@ def find_item():
     input("\nPlease press Enter to continue")
 
 def borrow_item(): 
-    pass
+    print("\n==================== Borrow Item ====================")
+    entryID = input("Please input the entry ID (the first field in \"Find an Item\" results): ")
+    findCursor = conn.cursor()
+
+    # check availability of items
+    availabilityQuery = "SELECT * FROM Items WHERE entryID=:id AND status=:isAvailable"
+    findCursor.execute(availabilityQuery, {"id":entryID, "isAvailable":"AVAILABLE"})
+    row = findCursor.fetchone()
+
+    if row:
+        # set up data to insert
+        itemID = row[0]
+        print("Borrowing item with\n\tEntry ID: " + str(entryID) + "\n\tItem ID: " + str(itemID))
+        libraryID = input("Please input your library ID number: ")
+        currentTime = datetime.date.today()
+        returnTime = currentTime + datetime.timedelta(days=14)
+
+        # insert
+        insertCursor = conn.cursor()
+        borrow = "INSERT INTO Borrow(itemID, libraryID, borrowDate, returnDate, returned, outstandingFee) "
+        values = "VALUES (:iid, :lid, :bdate, :rdate, :returned, :fee)"
+        insertQuery = borrow + values
+        try:
+            insertCursor.execute(insertQuery, {"iid":itemID, "lid":libraryID, "bdate":currentTime.strftime('%Y-%m-%d'), "rdate":returnTime.strftime('%Y-%m-%d'), "returned":"No", "fee":0})
+        except sqlite3.IntegrityError:
+            print("ERROR: Some information provided was wrong!\n")
+        if conn:
+            conn.commit()
+        print("\nBorrow successful. Happy reading!")
+    else:
+        print("\n** That item is not currenly available **")
+    
+    input("\nPlease press Enter to continue")
 
 def return_item():
     pass
@@ -107,6 +140,8 @@ def main():
                 isRunning = False
         print("========================================================")
         print("Exited")
+    if conn:
+        conn.close()
 
 if __name__ == "__main__":
     main()
