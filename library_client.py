@@ -117,7 +117,7 @@ def return_item():
     fineStatus = "No fine" if fee == 0 else "Fine of " + str(fee) + " dollars for late return."
     print("\n*** Return successful. " + fineStatus + " ***")
     
-    input("\nPlease press Enter to continue")
+    input("Please press Enter to continue")
 
 
 def donate_item():
@@ -158,10 +158,22 @@ def find_event():
 def register_event():
     pass
 
-
 def volunteer():
-    pass
+    print("\n==================== Volunteer ====================")
+    print("Please enter the following details of the event:")
+    name = input("Name: ")
+    dob = input("Date of Birth (YYYY-MM-DD): ")
+    email = input("Email: ")
 
+    cursor = conn.cursor()
+    query = "INSERT INTO Personnel(name, dob, position, email)" + "VALUES (:fullname, :date, :pos, :em)"
+    try:
+        cursor.execute(query, {"fullname":name, "date":dob, "pos":"Volunteer", "em":email})
+    except sqlite3.IntegrityError:
+        print("ERROR: Some information provided was wrong!\n")
+    if conn:
+        conn.commit()
+    print("\nYou are now a volunteer for our library. Have fun!")
 
 def get_contact_information():
     print("\n==================== Help from Librarian ====================")
