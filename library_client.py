@@ -117,7 +117,7 @@ def return_item():
     fineStatus = "No fine" if fee == 0 else "Fine of " + str(fee) + " dollars for late return."
     print("\n*** Return successful. " + fineStatus + " ***")
     
-    input("\nPlease press Enter to continue")
+    input("Please press Enter to continue")
 
 
 def donate_item():
@@ -184,18 +184,61 @@ def donate_item():
 
 
 def find_event():
-    pass
+    print("\n==================== Finding Events ====================")
+    print("Please enter the following details of the event (can be left blank):")
+    name = input("Name: ")
+    time = input("Time:")
+    location = input("Location: ")
+
+    cursor = conn.cursor()
+    query = "SELECT * FROM Events "
+    if(name or time or location):
+        query += "WHERE "
+        query += "name=:queryName " if name else "TRUE "
+        query += "AND "
+        query += "time=:queryTime " if time else "TRUE "
+        query += "AND "
+        query += "location=:queryLocation" if location else "TRUE "
+
+    cursor.execute(query, {"queryName":name, "queryTime":time, "queryLocation":location})
+    rows = cursor.fetchall()
+
+    print("\n==================== Results ====================")
+    if rows:
+        for row in rows:
+            print(row)
+    else:
+        print("\nNo event(s) found")
+    
+    input("\nPlease press Enter to continue")
+
 
 
 def register_event():
     pass
 
-
 def volunteer():
-    pass
+    print("\n==================== Volunteer ====================")
+    print("Please enter the following details of the event:")
+    name = input("Name: ")
+    while (name == ''):
+        print("You must provide your name!")
+        name = input("Name: ")
+    dob = input("Date of Birth (YYYY-MM-DD): ")
+    email = input("Email: ")
 
+    cursor = conn.cursor()
+    query = "INSERT INTO Personnel(name, dob, position, email)" + "VALUES (:fullname, :date, :pos, :em)"
+    try:
+        cursor.execute(query, {"fullname":name, "date":dob, "pos":"Volunteer", "em":email})
+    except sqlite3.IntegrityError:
+        print("ERROR: Some information provided was wrong!\n")
+    if conn:
+        conn.commit()
+    print("\nYou are now a volunteer for our library. Have fun!")
 
 def get_contact_information():
+    print("\n==================== Help from Librarian ====================")
     cursor = conn.cursor()
 
     query = "SELECT name, email FROM Personnel WHERE position = 'Librarian' "
@@ -205,12 +248,11 @@ def get_contact_information():
     if rows:
         print("\nPlease contact our librarians from the following list:")
         for row in rows:
-            print(" - " + row[0] + ": " + row[1])
+            print(" Name: " + row[0] + " - Email: " + row[1])
     else:
         print("\nSorry. No librarian is available at the moment")
         
     input("\nPlease press Enter to continue")
-
 
 
 def main():
