@@ -204,7 +204,7 @@ def find_event():
     rows = cursor.fetchall()
 
     print("\n==================== Results ====================")
-    if row:
+    if rows:
         for row in rows:
             print(row)
     else:
