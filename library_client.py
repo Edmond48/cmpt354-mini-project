@@ -121,7 +121,66 @@ def return_item():
 
 
 def donate_item():
-    pass
+    print("\n==================== Donate Item ====================")
+    print("Tip: You can view all of our entries by using \"Find an Item\" and leaving the fields blank")
+    entryExist = input("Does your donation exist in the library entries (y/n)? ").lower()
+    entryID = -1
+    if (entryExist == "n"):
+        print("\nPlease input the following information:")
+        title = input("Title: ")
+        year = input("Year of publication: ")
+        author = input("Author: ")
+        category = input("Category (print book, online book, magazine, journal, cd, record): ").upper()
+
+        findCursor = conn.cursor()
+        findQuery = "SELECT * FROM Entries WHERE title=:t AND year=:y AND author=:a AND category=:c"
+        findCursor.execute(findQuery, {"t":title, "y":year, "a":author, "c":category})
+        findRows = findCursor.fetchall()
+        if (len(findRows) > 0):
+            print("\nIt seems like your donation already exists in our entries. We'll accept it anyways")
+            entryID = findRows[0][0]
+        else:
+            entryCursor = conn.cursor()
+            insertQuery = "INSERT INTO Entries(title, year, author, category) VALUES (:t, :y, :a, :c)"
+            try:
+                entryCursor.execute(insertQuery, {"t":title, "y":year, "a":author, "c":category})
+            except sqlite3.IntegrityError:
+                print("ERROR: Some data violated constraints!\n")
+            if conn:
+                conn.commit()
+            
+            # find the newly added row to get the EntryID
+            findCursor.execute(findQuery, {"t":title, "y":year, "a":author, "c":category})
+            findRow = findCursor.fetchone()
+            entryID = findRow[0]
+
+    elif (entryExist == "y"):
+        entryID = input("\nPlease enter the Entry ID: ")
+        # check to see if ID exists
+        findCursor = conn.cursor()
+        findQuery = "SELECT * FROM Entries WHERE entryID=:eid"
+        findCursor.execute(findQuery, {"eid":entryID})
+        rows = findCursor.fetchall()
+        if (len(rows) == 0):
+            print("***** Entry ID does not exist *****")
+            input("\nPlease press Enter to continue")
+            return
+
+    else:
+        print("***** Invalid Input *****")
+        input("\nPlease press Enter to continue")
+        return
+    
+    donateCursor = conn.cursor()
+    donateQuery = "INSERT INTO Items(status, entryID) VALUES (:s, :eid)"
+    try:
+        donateCursor.execute(donateQuery, {"s":"AVAILABLE", "eid":entryID})
+        print("\n*** Thanks for your donation! ***")
+        input("\nPlease press Enter to continue")
+    except sqlite3.IntegrityError:
+            print("ERROR: Some data violated constraints!\n")
+    if conn:
+        conn.commit()
 
 
 def find_event():
