@@ -1,3 +1,7 @@
+import sqlite3
+conn = sqlite3.connect('library.db')
+cursor = conn.cursor()
+
 def printMenu():
     print("\n\n==================== Library Client ====================")
     print("1.Find an item")
@@ -9,59 +13,64 @@ def printMenu():
     print("7.Volunteer for the library")
     print("8.Ask for help from a librarian")
     print("9.Exit")
+    print("========================================================")
 
-def findItem():
-    return
+def find_item():
+    pass
 
-def borrowItem():
-    return
+def borrow_item(): 
+    pass
 
-def returnItem():
-    return
+def return_item():
+    pass
 
-def donateItem():
-    return
+def donate_item():
+    pass
 
-def findEvent():
-    return
+def find_event():
+    pass
 
-def registerEvent():
-    return
+def register_event():
+    pass
 
 def volunteer():
-    return
+    pass
 
-def contactLibrarian():
-    return
+def get_contact_information():
+    query = "SELECT name, email FROM Personnel WHERE position = 'Librarian' "
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
+
 
 def main():
     isRunning = True
     while (isRunning):
         printMenu()
         userChoice = int(input("Please input the number of your option: "))
+        print("========================================================")
+
         if (userChoice == 1):
-            findItem()
+            find_item()
         elif (userChoice == 2):
-            borrowItem()
+            borrow_item()
         elif (userChoice == 3):
-            returnItem()
+            return_item()
         elif (userChoice == 4):
-            donateItem()
+            donate_item()
         elif (userChoice == 5):
-            findEvent()
+            find_event()
         elif (userChoice == 6):
-            registerEvent()
+            register_event()
         elif (userChoice == 7):
             volunteer()
         elif (userChoice == 8):
-            contactLibrarian()
-        elif (userChoice == 9):
-            isRunning = False
+            get_contact_information()
         else:
-            print("Invalid choice.")
-        print("========================================================")
-    
-    print("*** Exited Application ***")
+            print("Exited")
+            return
 
 if __name__ == "__main__":
     main()
